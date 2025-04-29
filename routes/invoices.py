@@ -1,0 +1,42 @@
+from flask import Blueprint, request, jsonify
+from app import db
+from models.invoice import Invoice
+from datetime import datetime  # Needed to parse dates
+
+invoices_bp = Blueprint('invoices', __name__)
+
+@invoices_bp.route('/invoices', methods=['POST'])
+def create_invoice():
+    data = request.get_json()
+
+    # Convert string dates to datetime.date objects
+    issue_date = datetime.strptime(data['issue_date'], '%Y-%m-%d').date()
+    due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
+
+    new_invoice = Invoice(
+        trip_id=data['trip_id'],
+        issue_date=issue_date,
+        due_date=due_date,
+        amount=data['amount'],
+        status=data.get('status', 'Pending')  # Default to 'Pending' if not provided
+    )
+
+    db.session.add(new_invoice)
+    db.session.commit()
+
+    return jsonify({'message': 'Invoice created successfully'})
+
+@invoices_bp.route('/invoices/<int:trip_id>', methods=['GET'])
+def get_invoices_for_trip(trip_id):
+    invoices = Invoice.query.filter_by(trip_id=trip_id).all()
+    result = [
+        {
+            'id': inv.id,
+            'issue_date': str(inv.issue_date),
+            'due_date': str(inv.due_date),
+            'amount': inv.amount,
+            'status': inv.status
+        }
+        for inv in invoices
+    ]
+    return jsonify(result)

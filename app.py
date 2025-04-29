@@ -6,9 +6,23 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 
-from models import client
+# Import routes
+from routes.clients import clients_bp
+from routes.trips import trips_bp
+from routes.invoices import invoices_bp
+from routes.payments import payments_bp
+
+# Register Blueprints
+app.register_blueprint(clients_bp)
+app.register_blueprint(trips_bp)
+app.register_blueprint(invoices_bp)
+app.register_blueprint(payments_bp)
+
+# Import models
+from models.client import Client
+from models.trip import Trip
+from models.invoice import Invoice
+from models.payment import Payment
+
 with app.app_context():
     db.create_all()
-
-from routes.clients import clients_bp
-app.register_blueprint(clients_bp)
