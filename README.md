@@ -43,33 +43,33 @@ mini-travel-crm-python-flask/ │
    ```bash
    git clone https://github.com/naen8918/mini-travel-crm-python-flask.git
    cd mini-travel-crm-python-flask
-    
+   ```
 
-**2. Create and activate virtual environment:**
+**1. Create and activate virtual environment:**
 
-   
+   ```
    python -m venv venv
    .\venv\Scripts\activate
-   
+   ``` 
 
 **3. Install the required dependencies:**
 
-   
+   ```
    pip install -r requirements.txt
-    
+   ```
 
 **4. Run the Flask app:**
-
-   
+   ```
    $env:FLASK_APP="app"
    flask run
-    ```
+   ```
 
 **5. The server will start on:**
-
+    ```
    (http://127.0.0.1:5000)
-
+    ```
 **6. Use Postman to test the API:**
-
+    ```
    - (POST /clients to add a new client)
    - (GET /clients to list all clients)
+```
