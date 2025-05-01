@@ -149,10 +149,10 @@ mini-travel-crm-python-flask/ │
     ```
    - (POST /clients to add a new client)
    - (GET /clients to list all clients)
-```
----
+   
+   ```
 
-### 👤 Author
+## 👤 Author
 
 - Nazgul Engvall – System Developer with a backend focus
 
