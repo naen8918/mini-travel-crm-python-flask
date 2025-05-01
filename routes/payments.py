@@ -36,3 +36,30 @@ def get_payments_for_invoice(invoice_id):
         for pay in payments
     ]
     return jsonify(result)
+
+# PATCH /payments/<payment_id>
+@payments_bp.route('/payments/<int:payment_id>', methods=['PATCH'])
+def update_payment(payment_id):
+    payment = Payment.query.get_or_404(payment_id)
+    data = request.get_json()
+
+    if 'payment_date' in data:
+        payment.payment_date = datetime.strptime(data['payment_date'], '%Y-%m-%d').date()
+    if 'amount' in data:
+        payment.amount = data['amount']
+    if 'payment_method' in data:
+        payment.payment_method = data['payment_method']
+
+    db.session.commit()
+
+    return jsonify({'message': 'Payment updated successfully'})
+
+# DELETE /payments/<payment_id>
+@payments_bp.route('/payments/<int:payment_id>', methods=['DELETE'])
+def delete_payment(payment_id):
+    payment = Payment.query.get_or_404(payment_id)
+
+    db.session.delete(payment)
+    db.session.commit()
+
+    return jsonify({'message': 'Payment deleted successfully'})

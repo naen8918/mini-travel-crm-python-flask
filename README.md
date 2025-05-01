@@ -1,24 +1,20 @@
 # Mini Travel CRM (Python Flask Project)
 
 This project is a minimal CRM (Customer Relationship Management) system designed for small travel agencies.  
-Built using **Python**, **Flask**, and **SQLAlchemy**.
+Built using **Python**, **Flask**, and **SQLAlchemy**, this CRM handles client relationships, trips, invoices, and payments.
 
 ---
 
-## ✨ Features
+## ✨ Features (Sprint 1–3)
 
-- Add new clients (`POST /clients`)
-- Retrieve a list of all clients (`GET /clients`)
-- Create trips linked to clients (`POST /trips`)
-- Create invoices for trips (`POST /invoices`)
-- View invoices per trip (`GET /invoices/<trip_id>`)
-- Record payments for invoices (`POST /payments`)
-- View payments per invoice (`GET /payments/<invoice_id>`)
-- SQLite database backend (`crm.db`)
-- RESTful API architecture
-- Modular project structure using Blueprints
-- Ready for future expansion (Trips, Projects, etc.)
-
+- ✅ **Client Management** (Create, Read, Update, Delete)
+- ✅ **Trip Tracking** linked to each client
+- ✅ **Invoice Handling** per trip (issue, due, status, amount)
+- ✅ **Payment Recording** per invoice
+- ✅ SQLite database backend (`crm.db`)
+- ✅ Modular project structure with Blueprints
+- ✅ RESTful API design, fully testable with Postman
+- ✅ Ready for future expansions: reporting, login, dashboard
 ---
 
 ## 🚀 Technologies Used
@@ -34,25 +30,30 @@ Built using **Python**, **Flask**, and **SQLAlchemy**.
 ## 🗂️ Project Structure
 
 ```bash
-mini-travel-crm-python-flask/ │ 
-├── app.py # Main Flask application
-├── config.py # Database configuration
-├── requirements.txt # Dependencies 
-├── README.md # Project documentation 
-├── .gitignore # Git ignored files │ 
-├── models/ # SQLAlchemy models 
-│ ├── client.py 
-│ ├── trip.py 
-│ ├── invoice.py 
-│ └── payment.py │ 
-├── routes/ # API route blueprints 
-│ ├── clients.py 
-│ ├── trips.py 
-│ ├── invoices.py 
-│ └── payments.py │ 
-├── static/ # Static files (empty for now) └── templates/ # HTML templates (empty for now)
-```
+mini-travel-crm-python-flask/
+│ 
+├── app.py               # Main Flask application
+├── config.py            # Database configuration
+├── requirements.txt     # Dependencies
+├── .gitignore           # Git ignored files
+├── README.md            # Project documentation
+│
+├── models/              # SQLAlchemy models
+│   ├── client.py
+│   ├── trip.py
+│   ├── invoice.py
+│   └── payment.py
+│
+├── routes/              # Flask Blueprints (API endpoints)
+│   ├── clients.py
+│   ├── trips.py
+│   ├── invoices.py
+│   └── payments.py
+│
+├── static/              # Static files - Frontend static files (empty for now) 
+└── templates/           # HTML templates (empty for now)
 
+```
 
 ---
 
@@ -61,7 +62,6 @@ mini-travel-crm-python-flask/ │
 ### 📌 Add a New Client
 
 **POST** `/clients`
-
 ```json
 {
   "name": "John Doe",
@@ -86,6 +86,7 @@ mini-travel-crm-python-flask/ │
 ```
 
 ### 📌 Create an Invoice
+
 **POST** `/invoices`
 ```json
 {
@@ -96,22 +97,48 @@ mini-travel-crm-python-flask/ │
   "status": "Pending"
 }
 ```
-
 ### 📌 Get Invoices for a Trip
 **GET** `/invoices/1`
 
 ## 📌 Record a Payment
-**POST** `/payments`
 
+**POST** `/payments`
+```json
 {
   "invoice_id": 1,
   "payment_date": "2025-06-10",
   "amount": 1200.00,
   "payment_method": "Credit Card"
 }
+```
 ## 📌 Get Payments for an Invoice
 **GET** `/payments/1`
 
+## 🧪 API Usage (Summary)
+
+### 📁 Clients
+- `POST /clients` – Create a new client
+- `GET /clients` – List all clients
+- `PATCH /clients/<id>` – Update a client
+- `DELETE /clients/<id>` – Delete a client
+
+### ✈️ Trips
+- `POST /trips` – Create a new trip
+- `GET /trips` – List all trips
+- `PATCH /trips/<id>` – Update a trip
+- `DELETE /trips/<id>` – Delete a trip
+
+### 🧾 Invoices
+- `POST /invoices` – Create an invoice
+- `GET /invoices/<trip_id>` – List invoices for a trip
+- `PATCH /invoices/<id>` – Update invoice
+- `DELETE /invoices/<id>` – Delete invoice
+
+### 💳 Payments
+- `POST /payments` – Record a payment
+- `GET /payments/<invoice_id>` – List payments for an invoice
+- `PATCH /payments/<id>` – Update payment
+- `DELETE /payments/<id>` – Delete payment
 
 ## 📋 How to Run the Project
 
@@ -122,7 +149,7 @@ mini-travel-crm-python-flask/ │
    cd mini-travel-crm-python-flask
    ```
 
-**1. Create and activate virtual environment:**
+**2. Create and activate virtual environment:**
 
    ```
    python -m venv venv
@@ -147,13 +174,21 @@ mini-travel-crm-python-flask/ │
     ```
 **6. Use Postman to test the API:**
     ```
-   - (POST /clients to add a new client)
-   - (GET /clients to list all clients)
-   
-   ```
+-   - (POST /clients to add a new client)
+-   - (GET /clients to list all clients)
++   - POST /clients – add a new client
++   - GET /clients – list all clients
+    ```
 
 ## 👤 Author
 
-- Nazgul Engvall – System Developer with a backend focus
+## Nazgul Engvall
+Backend-focused System Developer
+GitHub: naen8918
 
-- Built during professional portfolio development to demonstrate backend system architecture
+---
+
+## 🚀 What's Next (Sprint 4)
+
+- 📊 Reporting Dashboard (unpaid invoices, revenue, top clients)
+- 🔐 Authentication System (admin login, route protection)

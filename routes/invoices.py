@@ -40,3 +40,32 @@ def get_invoices_for_trip(trip_id):
         for inv in invoices
     ]
     return jsonify(result)
+
+# PATCH /invoices/<invoice_id>
+@invoices_bp.route('/invoices/<int:invoice_id>', methods=['PATCH'])
+def update_invoice(invoice_id):
+    invoice = Invoice.query.get_or_404(invoice_id)
+    data = request.get_json()
+
+    if 'issue_date' in data:
+        invoice.issue_date = datetime.strptime(data['issue_date'], '%Y-%m-%d').date()
+    if 'due_date' in data:
+        invoice.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
+    if 'amount' in data:
+        invoice.amount = data['amount']
+    if 'status' in data:
+        invoice.status = data['status']
+
+    db.session.commit()
+
+    return jsonify({'message': 'Invoice updated successfully'})
+
+# DELETE /invoices/<invoice_id>
+@invoices_bp.route('/invoices/<int:invoice_id>', methods=['DELETE'])
+def delete_invoice(invoice_id):
+    invoice = Invoice.query.get_or_404(invoice_id)
+
+    db.session.delete(invoice)
+    db.session.commit()
+
+    return jsonify({'message': 'Invoice deleted successfully'})
