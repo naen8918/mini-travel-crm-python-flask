@@ -101,7 +101,7 @@ mini-travel-crm-python-flask/ │
 **GET** `/invoices/1`
 
 ## 📌 Record a Payment
-POST /payments
+**POST** `/payments`
 
 {
   "invoice_id": 1,
@@ -110,7 +110,7 @@ POST /payments
   "payment_method": "Credit Card"
 }
 ## 📌 Get Payments for an Invoice
-GET /payments/1
+**GET** `/payments/1`
 
 
 ## 📋 How to Run the Project
@@ -150,8 +150,10 @@ GET /payments/1
    - (POST /clients to add a new client)
    - (GET /clients to list all clients)
 ```
+---
 
-## 👤 Author
+### 👤 Author
+
 - Nazgul Engvall – System Developer with a backend focus
 
 - Built during professional portfolio development to demonstrate backend system architecture
