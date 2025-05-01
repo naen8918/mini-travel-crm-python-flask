@@ -24,5 +24,8 @@ from models.trip import Trip
 from models.invoice import Invoice
 from models.payment import Payment
 
+from routes.reports import reports_bp
+app.register_blueprint(reports_bp)
+
 with app.app_context():
     db.create_all()
