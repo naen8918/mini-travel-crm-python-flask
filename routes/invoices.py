@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app import db
 from models.invoice import Invoice
+from models.trip import Trip
 from datetime import datetime  # Needed to parse dates
 
 invoices_bp = Blueprint('invoices', __name__)
@@ -28,6 +29,8 @@ def create_invoice():
 
 @invoices_bp.route('/invoices/<int:trip_id>', methods=['GET'])
 def get_invoices_for_trip(trip_id):
+    Trip.query.get_or_404(trip_id)  # Check if trip exists first
+
     invoices = Invoice.query.filter_by(trip_id=trip_id).all()
     result = [
         {
@@ -69,3 +72,16 @@ def delete_invoice(invoice_id):
     db.session.commit()
 
     return jsonify({'message': 'Invoice deleted successfully'})
+
+@invoices_bp.route('/invoices/<int:invoice_id>', methods=['GET'])
+def get_invoice_by_id(invoice_id):
+    invoice = Invoice.query.get_or_404(invoice_id)
+
+    return jsonify({
+        'id': invoice.id,
+        'trip_id': invoice.trip_id,
+        'issue_date': str(invoice.issue_date),
+        'due_date': str(invoice.due_date),
+        'amount': invoice.amount,
+        'status': invoice.status
+    })

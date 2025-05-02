@@ -1,29 +1,34 @@
 # Mini Travel CRM (Python Flask Project)
 
 This project is a minimal CRM (Customer Relationship Management) system designed for small travel agencies.  
-Built using **Python**, **Flask**, and **SQLAlchemy**, this CRM handles client relationships, trips, invoices, and payments.
+Built using **Python**, **Flask**, and **SQLAlchemy**, this CRM handles client relationships, trips, invoices, payments, and revenue reporting.
 
 ---
 
-## ✨ Features (Sprint 1–3)
+## ✨ Features (Sprint 1–4)
 
 - ✅ **Client Management** (Create, Read, Update, Delete)
-- ✅ **Trip Tracking** linked to each client
-- ✅ **Invoice Handling** per trip (issue, due, status, amount)
-- ✅ **Payment Recording** per invoice
-- ✅ SQLite database backend (`crm.db`)
-- ✅ Modular project structure with Blueprints
-- ✅ RESTful API design, fully testable with Postman
-- ✅ Ready for future expansions: reporting, login, dashboard
+- ✅ **Trip Management** (per client)
+- ✅ **Invoice Handling** (linked to trips)
+- ✅ **Payment Recording** (linked to invoices)
+- ✅ **Get-by-ID endpoints** for clients, invoices, and payments
+- ✅ **Revenue Reports** (monthly, per client, by destination)
+- ✅ **Unpaid/Overdue Invoice Summary**
+- ✅ **Overdue detection** logic for transparency
+- ✅ **SQLite database** (`crm.db`) with ORM via SQLAlchemy
+- ✅ Modular REST API structure using Blueprints
+- ✅ Fully testable with **Postman**
+- 🚀 Designed for future frontend dashboards and login system
+
 ---
 
 ## 🚀 Technologies Used
 
 - **Python 3.11**
-- **Flask** (micro web framework)
-- **Flask-SQLAlchemy** (ORM)
-- **SQLite** (local embedded database)
-- **Postman** (API testing)
+- **Flask** – lightweight web framework
+- **Flask-SQLAlchemy** – ORM for database management
+- **SQLite** – local embedded database
+- **Postman** – API testing and debugging
 
 ---
 
@@ -32,9 +37,9 @@ Built using **Python**, **Flask**, and **SQLAlchemy**, this CRM handles client r
 ```bash
 mini-travel-crm-python-flask/
 │ 
-├── app.py               # Main Flask application
+├── app.py               # Main Flask app and blueprint registration
 ├── config.py            # Database configuration
-├── requirements.txt     # Dependencies
+├── requirements.txt     # Python Dependencies
 ├── .gitignore           # Git ignored files
 ├── README.md            # Project documentation
 │
@@ -44,13 +49,14 @@ mini-travel-crm-python-flask/
 │   ├── invoice.py
 │   └── payment.py
 │
-├── routes/              # Flask Blueprints (API endpoints)
+├── routes/              # Flask Blueprints for modular routes(API endpoints)
 │   ├── clients.py
 │   ├── trips.py
 │   ├── invoices.py
-│   └── payments.py
+│   ├── payments.py
+│   └── reports.py
 │
-├── static/              # Static files - Frontend static files (empty for now) 
+├── static/              # Static frontend files (empty for now) 
 └── templates/           # HTML templates (empty for now)
 
 ```
@@ -114,11 +120,12 @@ mini-travel-crm-python-flask/
 ## 📌 Get Payments for an Invoice
 **GET** `/payments/1`
 
-## 🧪 API Usage (Summary)
+## 🧪 API Endpoints Usage (Summary)
 
 ### 📁 Clients
 - `POST /clients` – Create a new client
 - `GET /clients` – List all clients
+- `GET /clients/<id>` – Get specific client
 - `PATCH /clients/<id>` – Update a client
 - `DELETE /clients/<id>` – Delete a client
 
@@ -131,14 +138,65 @@ mini-travel-crm-python-flask/
 ### 🧾 Invoices
 - `POST /invoices` – Create an invoice
 - `GET /invoices/<trip_id>` – List invoices for a trip
+- `GET /invoices/<id>` – Get specific invoice
 - `PATCH /invoices/<id>` – Update invoice
 - `DELETE /invoices/<id>` – Delete invoice
 
 ### 💳 Payments
 - `POST /payments` – Record a payment
 - `GET /payments/<invoice_id>` – List payments for an invoice
+- `GET /payments/<id>` – Get specific payment
 - `PATCH /payments/<id>` – Update payment
 - `DELETE /payments/<id>` – Delete payment
+
+## 📊 Reporting API (Sprint 4)
+
+🧾 `/reports/invoice-summary`
+- Overview of all invoices:
+  - How many are Paid, Pending, or Overdue
+  - Invoice IDs per category
+
+# Example output:
+```json
+{
+  "total_paid": 1,
+  "paid_invoice_ids": [8],
+  "total_pending": 5,
+  "pending_invoice_ids": [1, 2, 3],
+  "total_overdue": 2,
+  "overdue_invoice_ids": [4, 5]
+}
+```
+
+📅 `/reports/monthly-revenue`
+- Returns revenue grouped by month and year.
+- Optional filters:
+  - `?year=2025`
+  - `?destination=Rome`
+```json
+[
+  {
+    "year": 2025,
+    "month": 6,
+    "destination": "Rome",
+    "total_revenue": 2200.0
+  }
+]
+```
+💼 `/reports/revenue-by-client`
+- Summarizes how much revenue each client generated.
+```json
+[
+  {
+    "client_id": 1,
+    "client_name": "John Doe",
+    "total_revenue": 3700.0
+  }
+]
+```
+❌ `/reports/unpaid-invoices`
+- Shows all invoices where status is not marked "Paid".
+
 
 ## 📋 How to Run the Project
 
@@ -153,7 +211,7 @@ mini-travel-crm-python-flask/
 
    ```
    python -m venv venv
-   .\venv\Scripts\activate     # For Windows
+   .\venv\Scripts\activate     # On Windows
    ``` 
 
 **3. Install the required dependencies:**
@@ -179,16 +237,25 @@ mini-travel-crm-python-flask/
 +   - POST /clients – add a new client
 +   - GET /clients – list all clients
     ```
+## 🧑‍🎨 UI Preview (Invoice Summary Widget)
+
+📋 Invoice Summary
+✅ Paid: 3 invoices [IDs: 2, 4, 7]
+⏳ Pending: 2 invoices [IDs: 5, 6]
+⚠️ Overdue: 1 invoice [ID: 8]
+
+- This widget will appear on the future admin dashboard and help identify financial risks and pending actions.
 
 ## 👤 Author
-
-## Nazgul Engvall
+# Nazgul Engvall
 Backend-focused System Developer
 GitHub: naen8918
 
 ---
 
-## 🚀 What's Next (Sprint 4)
+## 🚀 What's Next (Future Sprints)
 
-- 📊 Reporting Dashboard (unpaid invoices, revenue, top clients)
 - 🔐 Authentication System (admin login, route protection)
+- 🧾 Export reports to CSV/PDF
+- 📈 Frontend dashboard with charts and filters
+- 🌐 Support for multiple languages (localization)

@@ -66,3 +66,13 @@ def delete_client(client_id):
 
     return jsonify({'message': 'Client deleted successfully'})
 
+@clients_bp.route('/clients/<int:client_id>', methods=['GET'])
+def get_client_by_id(client_id):
+    client = Client.query.get_or_404(client_id)
+    return jsonify({
+        'id': client.id,
+        'name': client.name,
+        'email': client.email,
+        'phone': client.phone,
+        'company': client.company
+    })

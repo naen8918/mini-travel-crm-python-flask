@@ -9,6 +9,7 @@ from models.payment import Payment
 from sqlalchemy import func
 from sqlalchemy import extract
 from flask import request
+from datetime import date
 
 reports_bp = Blueprint('reports', __name__)
 
@@ -90,3 +91,36 @@ def monthly_revenue():
     ]
 
     return jsonify(data)
+
+
+# To improve transparency in the CRM and help admins/users easily inspect invoice statuses
+@reports_bp.route('/reports/invoice-summary', methods=['GET'])
+def invoice_summary():
+    today = date.today()
+    invoices = Invoice.query.all()
+
+    paid_ids = []
+    pending_ids = []
+    overdue_ids = []
+
+    for inv in invoices:
+        status = inv.status
+        due_date = inv.due_date
+
+        is_overdue = (status != 'Paid') and (due_date < today)
+
+        if status == 'Paid':
+            paid_ids.append(inv.id)
+        elif is_overdue:
+            overdue_ids.append(inv.id)
+        else:
+            pending_ids.append(inv.id)
+
+    return jsonify({
+        "total_paid": len(paid_ids),
+        "paid_invoice_ids": paid_ids,
+        "total_pending": len(pending_ids),
+        "pending_invoice_ids": pending_ids,
+        "total_overdue": len(overdue_ids),
+        "overdue_invoice_ids": overdue_ids
+    })

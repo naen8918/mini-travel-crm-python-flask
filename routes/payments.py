@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app import db
 from models.payment import Payment
+from models.invoice import Invoice
 from datetime import datetime
 
 payments_bp = Blueprint('payments', __name__)
@@ -25,6 +26,8 @@ def create_payment():
 
 @payments_bp.route('/payments/<int:invoice_id>', methods=['GET'])
 def get_payments_for_invoice(invoice_id):
+    Invoice.query.get_or_404(invoice_id)  # Ensure it exists
+
     payments = Payment.query.filter_by(invoice_id=invoice_id).all()
     result = [
         {
@@ -63,3 +66,15 @@ def delete_payment(payment_id):
     db.session.commit()
 
     return jsonify({'message': 'Payment deleted successfully'})
+
+@payments_bp.route('/payments/<int:payment_id>', methods=['GET'])
+def get_payment_by_id(payment_id):
+    payment = Payment.query.get_or_404(payment_id)
+
+    return jsonify({
+        'id': payment.id,
+        'invoice_id': payment.invoice_id,
+        'payment_date': str(payment.payment_date),
+        'amount': payment.amount,
+        'payment_method': payment.payment_method
+    })
