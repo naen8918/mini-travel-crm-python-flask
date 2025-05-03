@@ -1,354 +1,173 @@
-# Mini Travel CRM (Python Flask Project)
+# 🚀 Mini Travel CRM – Flask REST API
 
-This project is a minimal CRM (Customer Relationship Management) system designed for small travel agencies.  
-Built using **Python**, **Flask**, and **SQLAlchemy**, this CRM handles client relationships, trips, invoices, payments, and revenue reporting.
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Python](https://img.shields.io/badge/python-3.11+-blue)
+![Status](https://img.shields.io/badge/status-in%20development-yellow)
 
----
-
-## ✨ Features (Sprint 1–4)
-
-- ✅ **Client Management** (Create, Read, Update, Delete)
-- ✅ **Trip Management** (per client)
-- ✅ **Invoice Handling** (linked to trips)
-- ✅ **Payment Recording** (linked to invoices)
-- ✅ **JWT Authentication System** (register/login, token-based access)
-- ✅ **Role-Based Access Control** (admin / agent / analyst)
-- ✅ **Get-by-ID endpoints** for clients, invoices, and payments
-- ✅ **Revenue Reports** (monthly, per client, by destination)
-- ✅ **Unpaid/Overdue Invoice Summary**
-- ✅ **/me Endpoint** to inspect current user
-- ✅ **SQLite database** (`crm.db`) with ORM via SQLAlchemy
-- ✅ Modular REST API structure using Blueprints
-- ✅ Fully testable with **Postman**
+> A lightweight CRM system tailored for small travel agencies.  
+> Built with Python, Flask, and SQLAlchemy, it provides client, trip, invoice, and payment management — with JWT-based authentication and role-based access control for security.
 
 ---
 
-## 👥 User Roles
+## ✨ Key Features
 
-| Role     | Permissions |
-|----------|-------------|
-| `admin`  | Full access: create/update/delete everything |
-| `agent`  | Create & update clients, trips, invoices, payments |
-| `analyst`| View reports only |
+- 🔐 **JWT Authentication** (Register, Login, `/me` endpoint)
+- 👥 **Role-Based Access Control** (`admin`, `agent`, `analyst`)
+- 📁 Full CRUD for **Clients, Trips, Invoices, Payments**
+- 💰 **Reports API**: Revenue, unpaid invoices, invoice summaries
+- 🧾 **Invoice Tracking**: Pending, Paid, Overdue
+- 🧱 Modular architecture using Flask Blueprints
+- 🧪 Ready for **Postman testing**
+- 🗂️ Uses **SQLite** and **Flask-SQLAlchemy** for DB operations
 
 ---
 
-## 🚀 Technologies Used
+## 👥 Roles & Permissions
 
-- **Python 3.11**
-- **Flask** – lightweight web framework
-- **Flask-JWT-Extended** – authentication
-- **Flask-SQLAlchemy** – ORM for database management
-- **SQLite** – local embedded database
-- **Postman** – API testing and debugging
-- **dotenv** – manage environment secrets securely
+| Role     | Description                             |
+|----------|-----------------------------------------|
+| `admin`  | Full access to all endpoints            |
+| `agent`  | Can create/update business data         |
+| `analyst`| Read-only access to financial reports   |
+
 ---
 
-## 🗂️ Project Structure
+## 🔐 Authentication Overview
+
+### ✅ Register
+`POST /register`
+```json
+{
+  "username": "admin_user",
+  "password": "securepass",
+  "role": "admin" // optional, defaults to agent
+}
+```
+
+## 🔑 Login
+`POST /login`
+
+## Returns a token:
+```json
+{
+  "access_token": "eyJhbGciOi..."
+}
+```
+
+## 🔍 Get Current User
+`GET /me` with header:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+## 🗂️ Folder Structure
 
 ```bash
 mini-travel-crm-python-flask/
 │
-├── app.py                  # Main Flask app and blueprint registration
-├── config.py               # Database configuration
-├── requirements.txt        # Python Dependencies
-├── .gitignore              # Git ignored files
-├── README.md               # Project documentation
-├── .env                    # Environment secrets (JWT keys)
+├── app.py                  # Main entry point
+├── config.py               # App config + DB + JWT secrets
+├── .env                    # Local secrets (not pushed)
+├── requirements.txt
 │
-├── models/                 # SQLAlchemy models
+├── models/                 # SQLAlchemy ORM Models
 │   ├── client.py
 │   ├── trip.py
 │   ├── invoice.py
 │   └── payment.py
 │
-├── routes/                # Flask Blueprints for modular routes(API endpoints)
+├── routes/                 # Business logic & API endpoints
 │   ├── clients.py
 │   ├── trips.py
 │   ├── invoices.py
 │   ├── payments.py
 │   └── reports.py
 │
-├── auth/                   # Authentication module
+├── auth/                   # Auth system
 │   ├── models.py
 │   ├── routes.py
 │   ├── utils.py
 │   └── permissions.py
-│
-├── static/                # Static frontend files (empty for now) 
-└── templates/             # HTML templates (empty for now)
+
 ```
-
-## 🔐 Protected Routes & Permissions
-
-| Endpoint                | Roles          | Description              |
-| ----------------------- | -------------- | ------------------------ |
-| `POST /clients`         | admin, agent   | Create new client        |
-| `DELETE /clients/<id>`  | admin          | Delete a client          |
-| `POST /trips`           | admin, agent   | Create trip              |
-| `DELETE /trips/<id>`    | admin          | Delete trip              |
-| `POST /invoices`        | admin, agent   | Create invoice           |
-| `DELETE /invoices/<id>` | admin          | Delete invoice           |
-| `POST /payments`        | admin, agent   | Record payment           |
-| `DELETE /payments/<id>` | admin          | Delete payment           |
-| `GET /reports/*`        | admin, analyst | Access financial reports |
-
 ---
-
 ## 📊 Reporting API
-🧾 `/reports/invoice-summary`
-Shows how many invoices are Paid / Pending / Overdue.
+| Endpoint                     | Description                              |
+| ---------------------------- | ---------------------------------------- |
+| `/reports/invoice-summary`   | Paid, Pending, and Overdue invoice count |
+| `/reports/monthly-revenue`   | Monthly revenue by year & destination    |
+| `/reports/revenue-by-client` | Total revenue generated per client       |
+| `/reports/unpaid-invoices`   | List of all unpaid invoices              |
 
-📅 `/reports/monthly-revenue?year=2025&destination=Rome`
-Revenue by month/year and destination.
-
-💼 `/reports/revenue-by-client`
-Total revenue per client.
-
-❌ `/reports/unpaid-invoices`
-Lists invoices not yet marked as Paid.
 
 ---
 
-## 🔐 Authentication API
+## 🔐 Protected Routes Summary
 
-### ✅ Register
-**POST** `/register`
-```json
-{
-  "username": "admin_user",
-  "password": "securepass",
-  "role": "admin"  // Optional, defaults to "agent"
-}
-```
-## 🔑 Login
-**POST** `/login`
-```json
-{
-  "username": "admin_user",
-  "password": "securepass"
-}
-```
-## Returns:
-```json
-{
-  "access_token": "eyJhbGciOi..."
-}
-```
-## 🔍 Get Current User
-**GET** `/me`
-Header: Authorization: Bearer <access_token>
+| Endpoint         | Method | Roles          |
+| ---------------- | ------ | -------------- |
+| `/clients`       | POST   | admin, agent   |
+| `/clients/<id>`  | DELETE | admin          |
+| `/trips`         | POST   | admin, agent   |
+| `/trips/<id>`    | DELETE | admin          |
+| `/invoices`      | POST   | admin, agent   |
+| `/invoices/<id>` | DELETE | admin          |
+| `/payments`      | POST   | admin, agent   |
+| `/payments/<id>` | DELETE | admin          |
+| `/reports/*`     | GET    | admin, analyst |
 
-## Response:
-```json
-{
-  "user_id": "1",
-  "role": "admin"
-}
-```
-## 🧪 API Usage Examples
+---
 
-### 📌 Add a New Client
-**POST** `/clients`
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone": "123456789",
-  "company": "Global Travels"
-}
-```
-### 📌 Create a Trip
-**POST** `/trips`
-```json
-{
-  "destination": "Paris",
-  "start_date": "2025-06-01",
-  "end_date": "2025-06-07",
-  "price": 1200.00,
-  "notes": "Flight and hotel included",
-  "client_id": 1
-}
-```
-### 📌 Create an Invoice
-**POST** `/invoices`
-```json
-{
-  "trip_id": 1,
-  "issue_date": "2025-06-01",
-  "due_date": "2025-06-15",
-  "amount": 1200.00,
-  "status": "Pending"
-}
-```
-### 📌 Get Invoices for a Trip
-**GET** `/invoices/1`
+## 📦 Quick Start (Windows)
+```bash
+# Clone the repo
+git clone https://github.com/naen8918/mini-travel-crm-python-flask.git
+cd mini-travel-crm-python-flask
 
-## 📌 Record a Payment
-**POST** `/payments`
-```json
-{
-  "invoice_id": 1,
-  "payment_date": "2025-06-10",
-  "amount": 1200.00,
-  "payment_method": "Credit Card"
-}
-```
-## 📌 Get Payments for an Invoice
-**GET** `/payments/1`
+# Create & activate a virtual environment
+python -m venv venv
+.\venv\Scripts\activate
 
-## 🧪 API Endpoints Usage (Summary)
+# Install dependencies
+pip install -r requirements.txt
 
-### 📁 Clients
-- `POST /clients` – Create a new client
-- `GET /clients` – List all clients
-- `GET /clients/<id>` – Get specific client
-- `PATCH /clients/<id>` – Update a client
-- `DELETE /clients/<id>` – Delete a client
+# Set secrets in .env
+echo SECRET_KEY=your-secure-key > .env
+echo JWT_SECRET_KEY=your-jwt-key >> .env
 
-### ✈️ Trips
-- `POST /trips` – Create a new trip
-- `GET /trips` – List all trips
-- `PATCH /trips/<id>` – Update a trip
-- `DELETE /trips/<id>` – Delete a trip
-
-### 🧾 Invoices
-- `POST /invoices` – Create an invoice
-- `GET /invoices/<trip_id>` – List invoices for a trip
-- `GET /invoices/<id>` – Get specific invoice
-- `PATCH /invoices/<id>` – Update invoice
-- `DELETE /invoices/<id>` – Delete invoice
-
-### 💳 Payments
-- `POST /payments` – Record a payment
-- `GET /payments/<invoice_id>` – List payments for an invoice
-- `GET /payments/<id>` – Get specific payment
-- `PATCH /payments/<id>` – Update payment
-- `DELETE /payments/<id>` – Delete payment
-
-## 📊 Reporting API (Sprint 4)
-
-🧾 `/reports/invoice-summary`
-- Overview of all invoices:
-  - How many are Paid, Pending, or Overdue
-  - Invoice IDs per category
-
-# Example output:
-```json
-{
-  "total_paid": 1,
-  "paid_invoice_ids": [8],
-  "total_pending": 5,
-  "pending_invoice_ids": [1, 2, 3],
-  "total_overdue": 2,
-  "overdue_invoice_ids": [4, 5]
-}
+# Run the app
+$env:FLASK_APP="app"
+flask run
 ```
 
-📅 `/reports/monthly-revenue`
-- Returns revenue grouped by month and year.
-- Optional filters:
-  - `?year=2025`
-  - `?destination=Rome`
-```json
-[
-  {
-    "year": 2025,
-    "month": 6,
-    "destination": "Rome",
-    "total_revenue": 2200.0
-  }
-]
-```
-💼 `/reports/revenue-by-client`
-- Summarizes how much revenue each client generated.
-```json
-[
-  {
-    "client_id": 1,
-    "client_name": "John Doe",
-    "total_revenue": 3700.0
-  }
-]
-```
-❌ `/reports/unpaid-invoices`
-- Shows all invoices where status is not marked "Paid".
+---
 
-
-## 📋 How to Run the Project
-
-**1. Clone the repository:**
-
-   ```bash
-   git clone https://github.com/naen8918/mini-travel-crm-python-flask.git
-   cd mini-travel-crm-python-flask
-   ```
-
-**2. Create and activate virtual environment:**
-
-   ```
-   python -m venv venv
-   .\venv\Scripts\activate     # On Windows
-   ``` 
-
-**3. Install the required dependencies:**
-
-   ```
-   pip install -r requirements.txt
-   ```
-
-**4. Set environment variables in .env**
-
-  ```
-   SECRET_KEY=your-very-secure-flask-key
-   JWT_SECRET_KEY=your-even-more-secure-jwt-key
-  ```
-
-**5.Run the Flask app:**
-
-  ```
-   $env:FLASK_APP="app"
-   flask run
-   ```
-
-**6. The server will start on:**
-
-    ```
-   (http://127.0.0.1:5000)
-    ```
-
-**7. Use Postman to test the API:**
+## 🧪 Postman Testing Instructions
     
-- Use **POST** ´/register´ and **POST** ´/login´ to get access token.
-- Add this to headers:
-      `Authorization: Bearer <your_token_here>`
-      `Content-Type: application/json`
+1. Login via `/login`, store token
+2. Set Header:
 
--   - (POST /clients to add a new client)
--   - (GET /clients to list all clients)
-+   - POST /clients – add a new client
-+   - GET /clients – list all clients
-
-## 🧑‍🎨 UI Preview (Future)
-- 📋 Invoice Summary Widget
-- ✅ Paid: [IDs]
-- ⏳ Pending: [IDs]
-- ⚠️ Overdue: [IDs]
-***This will appear in admin dashboard.*** 
-
+    ```pgsql
+    Authorization: Bearer <your_token>
+    Content-Type: application/json
+    ```
+3. Use all `/clients`, `/trips`, `/invoices`, `/payments`, and `/reports/`* endpoints.
 ---
 
+## 📈 Future Improvements
+- 📤 Export reports as CSV or PDF
+- 🖼️ Build a frontend (React/Vue)
+- 🌍 Localization support (multi-language)
+- 🛡️ Admin UI panel for user/role management
+---
 ## 👤 Author
-# Nazgul Engvall
-Backend-focused System Developer
-GitHub: naen8918
+### Nazgul Engvall
+Backend-Focused System Developer
+GitHub: [naen8918](https://github.com/naen8918)
 
----
 
-## 🚀 What's Next (Future Sprints)
+## 📝 License
 
-- 🧾 Export reports to CSV/PDF
-- 📈 Frontend dashboard with charts and filters (React/Vue)
-- 🌐 Support for multiple languages (localization)
-- 🔒 Admin panel for user creation
-
+This project is licensed under the MIT License.
