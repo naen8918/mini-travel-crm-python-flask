@@ -11,14 +11,25 @@ Built using **Python**, **Flask**, and **SQLAlchemy**, this CRM handles client r
 - ✅ **Trip Management** (per client)
 - ✅ **Invoice Handling** (linked to trips)
 - ✅ **Payment Recording** (linked to invoices)
+- ✅ **JWT Authentication System** (register/login, token-based access)
+- ✅ **Role-Based Access Control** (admin / agent / analyst)
 - ✅ **Get-by-ID endpoints** for clients, invoices, and payments
 - ✅ **Revenue Reports** (monthly, per client, by destination)
 - ✅ **Unpaid/Overdue Invoice Summary**
-- ✅ **Overdue detection** logic for transparency
+- ✅ **/me Endpoint** to inspect current user
 - ✅ **SQLite database** (`crm.db`) with ORM via SQLAlchemy
 - ✅ Modular REST API structure using Blueprints
 - ✅ Fully testable with **Postman**
-- 🚀 Designed for future frontend dashboards and login system
+
+---
+
+## 👥 User Roles
+
+| Role     | Permissions |
+|----------|-------------|
+| `admin`  | Full access: create/update/delete everything |
+| `agent`  | Create & update clients, trips, invoices, payments |
+| `analyst`| View reports only |
 
 ---
 
@@ -26,47 +37,118 @@ Built using **Python**, **Flask**, and **SQLAlchemy**, this CRM handles client r
 
 - **Python 3.11**
 - **Flask** – lightweight web framework
+- **Flask-JWT-Extended** – authentication
 - **Flask-SQLAlchemy** – ORM for database management
 - **SQLite** – local embedded database
 - **Postman** – API testing and debugging
-
+- **dotenv** – manage environment secrets securely
 ---
 
 ## 🗂️ Project Structure
 
 ```bash
 mini-travel-crm-python-flask/
-│ 
-├── app.py               # Main Flask app and blueprint registration
-├── config.py            # Database configuration
-├── requirements.txt     # Python Dependencies
-├── .gitignore           # Git ignored files
-├── README.md            # Project documentation
 │
-├── models/              # SQLAlchemy models
+├── app.py                  # Main Flask app and blueprint registration
+├── config.py               # Database configuration
+├── requirements.txt        # Python Dependencies
+├── .gitignore              # Git ignored files
+├── README.md               # Project documentation
+├── .env                    # Environment secrets (JWT keys)
+│
+├── models/                 # SQLAlchemy models
 │   ├── client.py
 │   ├── trip.py
 │   ├── invoice.py
 │   └── payment.py
 │
-├── routes/              # Flask Blueprints for modular routes(API endpoints)
+├── routes/                # Flask Blueprints for modular routes(API endpoints)
 │   ├── clients.py
 │   ├── trips.py
 │   ├── invoices.py
 │   ├── payments.py
 │   └── reports.py
 │
-├── static/              # Static frontend files (empty for now) 
-└── templates/           # HTML templates (empty for now)
-
+├── auth/                   # Authentication module
+│   ├── models.py
+│   ├── routes.py
+│   ├── utils.py
+│   └── permissions.py
+│
+├── static/                # Static frontend files (empty for now) 
+└── templates/             # HTML templates (empty for now)
 ```
+
+## 🔐 Protected Routes & Permissions
+
+| Endpoint                | Roles          | Description              |
+| ----------------------- | -------------- | ------------------------ |
+| `POST /clients`         | admin, agent   | Create new client        |
+| `DELETE /clients/<id>`  | admin          | Delete a client          |
+| `POST /trips`           | admin, agent   | Create trip              |
+| `DELETE /trips/<id>`    | admin          | Delete trip              |
+| `POST /invoices`        | admin, agent   | Create invoice           |
+| `DELETE /invoices/<id>` | admin          | Delete invoice           |
+| `POST /payments`        | admin, agent   | Record payment           |
+| `DELETE /payments/<id>` | admin          | Delete payment           |
+| `GET /reports/*`        | admin, analyst | Access financial reports |
 
 ---
 
+## 📊 Reporting API
+🧾 `/reports/invoice-summary`
+Shows how many invoices are Paid / Pending / Overdue.
+
+📅 `/reports/monthly-revenue?year=2025&destination=Rome`
+Revenue by month/year and destination.
+
+💼 `/reports/revenue-by-client`
+Total revenue per client.
+
+❌ `/reports/unpaid-invoices`
+Lists invoices not yet marked as Paid.
+
+---
+
+## 🔐 Authentication API
+
+### ✅ Register
+**POST** `/register`
+```json
+{
+  "username": "admin_user",
+  "password": "securepass",
+  "role": "admin"  // Optional, defaults to "agent"
+}
+```
+## 🔑 Login
+**POST** `/login`
+```json
+{
+  "username": "admin_user",
+  "password": "securepass"
+}
+```
+## Returns:
+```json
+{
+  "access_token": "eyJhbGciOi..."
+}
+```
+## 🔍 Get Current User
+**GET** `/me`
+Header: Authorization: Bearer <access_token>
+
+## Response:
+```json
+{
+  "user_id": "1",
+  "role": "admin"
+}
+```
 ## 🧪 API Usage Examples
 
 ### 📌 Add a New Client
-
 **POST** `/clients`
 ```json
 {
@@ -76,9 +158,7 @@ mini-travel-crm-python-flask/
   "company": "Global Travels"
 }
 ```
-
 ### 📌 Create a Trip
-
 **POST** `/trips`
 ```json
 {
@@ -90,9 +170,7 @@ mini-travel-crm-python-flask/
   "client_id": 1
 }
 ```
-
 ### 📌 Create an Invoice
-
 **POST** `/invoices`
 ```json
 {
@@ -107,7 +185,6 @@ mini-travel-crm-python-flask/
 **GET** `/invoices/1`
 
 ## 📌 Record a Payment
-
 **POST** `/payments`
 ```json
 {
@@ -220,31 +297,46 @@ mini-travel-crm-python-flask/
    pip install -r requirements.txt
    ```
 
-**4. Run the Flask app:**
-   ```
+**4. Set environment variables in .env**
+
+  ```
+   SECRET_KEY=your-very-secure-flask-key
+   JWT_SECRET_KEY=your-even-more-secure-jwt-key
+  ```
+
+**5.Run the Flask app:**
+
+  ```
    $env:FLASK_APP="app"
    flask run
    ```
 
-**5. The server will start on:**
+**6. The server will start on:**
+
     ```
    (http://127.0.0.1:5000)
     ```
-**6. Use Postman to test the API:**
-    ```
+
+**7. Use Postman to test the API:**
+    
+- Use **POST** ´/register´ and **POST** ´/login´ to get access token.
+- Add this to headers:
+      `Authorization: Bearer <your_token_here>`
+      `Content-Type: application/json`
+
 -   - (POST /clients to add a new client)
 -   - (GET /clients to list all clients)
 +   - POST /clients – add a new client
 +   - GET /clients – list all clients
-    ```
-## 🧑‍🎨 UI Preview (Invoice Summary Widget)
 
-📋 Invoice Summary
-✅ Paid: 3 invoices [IDs: 2, 4, 7]
-⏳ Pending: 2 invoices [IDs: 5, 6]
-⚠️ Overdue: 1 invoice [ID: 8]
+## 🧑‍🎨 UI Preview (Future)
+- 📋 Invoice Summary Widget
+- ✅ Paid: [IDs]
+- ⏳ Pending: [IDs]
+- ⚠️ Overdue: [IDs]
+***This will appear in admin dashboard.*** 
 
-- This widget will appear on the future admin dashboard and help identify financial risks and pending actions.
+---
 
 ## 👤 Author
 # Nazgul Engvall
@@ -255,7 +347,8 @@ GitHub: naen8918
 
 ## 🚀 What's Next (Future Sprints)
 
-- 🔐 Authentication System (admin login, route protection)
 - 🧾 Export reports to CSV/PDF
-- 📈 Frontend dashboard with charts and filters
+- 📈 Frontend dashboard with charts and filters (React/Vue)
 - 🌐 Support for multiple languages (localization)
+- 🔒 Admin panel for user creation
+

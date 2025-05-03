@@ -3,11 +3,18 @@ from app import db
 from models.invoice import Invoice
 from models.trip import Trip
 from datetime import datetime  # Needed to parse dates
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from auth.permissions import role_required
 
 invoices_bp = Blueprint('invoices', __name__)
 
 @invoices_bp.route('/invoices', methods=['POST'])
+@jwt_required()
+@role_required('admin', 'agent')
 def create_invoice():
+    current_user = get_jwt_identity()
+    print(f"Invoice created by user: {current_user}")  # Logging user ID
+
     data = request.get_json()
 
     # Convert string dates to datetime.date objects
@@ -46,6 +53,8 @@ def get_invoices_for_trip(trip_id):
 
 # PATCH /invoices/<invoice_id>
 @invoices_bp.route('/invoices/<int:invoice_id>', methods=['PATCH'])
+@jwt_required() 
+@role_required('admin', 'agent')
 def update_invoice(invoice_id):
     invoice = Invoice.query.get_or_404(invoice_id)
     data = request.get_json()
@@ -65,6 +74,8 @@ def update_invoice(invoice_id):
 
 # DELETE /invoices/<invoice_id>
 @invoices_bp.route('/invoices/<int:invoice_id>', methods=['DELETE'])
+@jwt_required() 
+@role_required('admin')
 def delete_invoice(invoice_id):
     invoice = Invoice.query.get_or_404(invoice_id)
 

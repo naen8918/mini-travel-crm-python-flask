@@ -1,5 +1,3 @@
-# routes/reports.py
-
 from flask import Blueprint, jsonify
 from app import db
 from models.client import Client
@@ -10,10 +8,14 @@ from sqlalchemy import func
 from sqlalchemy import extract
 from flask import request
 from datetime import date
+from flask_jwt_extended import jwt_required
+from auth.permissions import role_required
 
 reports_bp = Blueprint('reports', __name__)
 
 @reports_bp.route('/reports/revenue-by-client', methods=['GET'])
+@jwt_required()
+@role_required('admin', 'analyst')
 def revenue_by_client():
     # Step 1: Join Payment -> Invoice -> Trip -> Client
     results = db.session.query(
@@ -40,6 +42,8 @@ def revenue_by_client():
     return jsonify(data)
 
 @reports_bp.route('/reports/unpaid-invoices', methods=['GET'])
+@jwt_required()
+@role_required('admin', 'analyst')
 def unpaid_invoices():
     invoices = Invoice.query.filter(Invoice.status != 'Paid').all()
 
@@ -58,6 +62,8 @@ def unpaid_invoices():
     return jsonify(data)
 
 @reports_bp.route('/reports/monthly-revenue', methods=['GET'])
+@jwt_required()
+@role_required('admin', 'analyst')
 def monthly_revenue():
     year_filter = request.args.get('year', type=int)
     destination_filter = request.args.get('destination', type=str)
@@ -95,6 +101,8 @@ def monthly_revenue():
 
 # To improve transparency in the CRM and help admins/users easily inspect invoice statuses
 @reports_bp.route('/reports/invoice-summary', methods=['GET'])
+@jwt_required()
+@role_required('admin', 'analyst')
 def invoice_summary():
     today = date.today()
     invoices = Invoice.query.all()

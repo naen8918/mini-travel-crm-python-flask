@@ -3,11 +3,18 @@ from app import db
 from models.payment import Payment
 from models.invoice import Invoice
 from datetime import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from auth.permissions import role_required
 
 payments_bp = Blueprint('payments', __name__)
 
 @payments_bp.route('/payments', methods=['POST'])
+@jwt_required() 
+@role_required('admin', 'agent')
 def create_payment():
+    current_user = get_jwt_identity()
+    print(f"Payment recorded by user: {current_user}")  # Logging user ID
+
     data = request.get_json()
 
     payment_date = datetime.strptime(data['payment_date'], '%Y-%m-%d').date()
@@ -42,6 +49,8 @@ def get_payments_for_invoice(invoice_id):
 
 # PATCH /payments/<payment_id>
 @payments_bp.route('/payments/<int:payment_id>', methods=['PATCH'])
+@jwt_required() 
+@role_required('admin', 'agent')
 def update_payment(payment_id):
     payment = Payment.query.get_or_404(payment_id)
     data = request.get_json()
@@ -59,6 +68,8 @@ def update_payment(payment_id):
 
 # DELETE /payments/<payment_id>
 @payments_bp.route('/payments/<int:payment_id>', methods=['DELETE'])
+@jwt_required() 
+@role_required('admin')
 def delete_payment(payment_id):
     payment = Payment.query.get_or_404(payment_id)
 

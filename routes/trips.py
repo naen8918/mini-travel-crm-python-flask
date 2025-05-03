@@ -2,11 +2,19 @@ from flask import Blueprint, request, jsonify
 from app import db
 from models.trip import Trip
 from datetime import datetime  # import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from auth.permissions import role_required
+
 
 trips_bp = Blueprint('trips', __name__)
 
 @trips_bp.route('/trips', methods=['POST'])
+@jwt_required()
+@role_required('admin', 'agent')
 def create_trip():
+    current_user = get_jwt_identity()
+    print(f"Trip created by user: {current_user}")  # Logging user ID 
+
     data = request.get_json()
 
     # Convert string dates to Python date objects
@@ -47,6 +55,8 @@ def get_trips():
 
 # PATCH /trips/<trip_id>
 @trips_bp.route('/trips/<int:trip_id>', methods=['PATCH'])
+@jwt_required()
+@role_required('admin', 'agent')
 def update_trip(trip_id):
     trip = Trip.query.get_or_404(trip_id)
     data = request.get_json()
@@ -69,6 +79,8 @@ def update_trip(trip_id):
 
 # DELETE /trips/<trip_id>
 @trips_bp.route('/trips/<int:trip_id>', methods=['DELETE'])
+@jwt_required()
+@role_required('admin')
 def delete_trip(trip_id):
     trip = Trip.query.get_or_404(trip_id)
 
