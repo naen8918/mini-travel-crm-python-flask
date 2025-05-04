@@ -8,6 +8,15 @@ class Trip(db.Model):
     price = db.Column(db.Float, nullable=False)
     notes = db.Column(db.Text)
 
-    client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey('client.id', ondelete='CASCADE'),
+        nullable=False
+    )
 
-    invoices = db.relationship('Invoice', back_populates='trip', cascade="all, delete-orphan")
+    invoices = db.relationship(
+        'Invoice',
+        back_populates='trip',
+        cascade='all, delete-orphan',
+        passive_deletes=True
+    )

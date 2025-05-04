@@ -20,7 +20,10 @@ from routes.invoices import invoices_bp
 from routes.payments import payments_bp
 from routes.reports import reports_bp
 from auth.routes import auth_bp  #  New auth blueprint
+from routes.client_notes import notes_bp
 
+
+app.register_blueprint(notes_bp)
 app.register_blueprint(clients_bp)
 app.register_blueprint(trips_bp)
 app.register_blueprint(invoices_bp)
@@ -33,7 +36,9 @@ from models.client import Client
 from models.trip import Trip
 from models.invoice import Invoice
 from models.payment import Payment
+from models.client_note import ClientNote
 from auth.models import User  #  Include User model for table creation
+
 
 # Ensure tables are created
 with app.app_context():

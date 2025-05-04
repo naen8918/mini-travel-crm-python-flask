@@ -74,15 +74,19 @@ def update_invoice(invoice_id):
 
 # DELETE /invoices/<invoice_id>
 @invoices_bp.route('/invoices/<int:invoice_id>', methods=['DELETE'])
-@jwt_required() 
+@jwt_required()
 @role_required('admin')
 def delete_invoice(invoice_id):
-    invoice = Invoice.query.get_or_404(invoice_id)
+
+    invoice = Invoice.query.get(invoice_id)
+    if not invoice:
+        return jsonify({'error': 'Invoice not found'}), 404
 
     db.session.delete(invoice)
     db.session.commit()
+    
+    return jsonify({'message': 'Invoice deleted successfully'}), 200
 
-    return jsonify({'message': 'Invoice deleted successfully'})
 
 @invoices_bp.route('/invoices/<int:invoice_id>', methods=['GET'])
 def get_invoice_by_id(invoice_id):

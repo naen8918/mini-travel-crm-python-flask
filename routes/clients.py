@@ -45,10 +45,35 @@ def create_client():
 
     return jsonify({'message': 'Client created successfully'}), 201 
 
-# GET /clients
+
+# GET /clients (with filtering)
 @clients_bp.route('/clients', methods=['GET'])
+@jwt_required()
+@role_required('admin', 'agent', 'analyst')  # Controls who can view clients
 def get_clients():
-    clients = Client.query.all()
+    # Get optional search parameters
+    name_query = request.args.get('name')
+    email_query = request.args.get('email')
+    phone_query = request.args.get('phone')
+    company_query = request.args.get('company')
+
+    # Start building the query
+    query = Client.query
+
+    # Apply filters only if parameters are provided
+    if name_query:
+        query = query.filter(Client.name.ilike(f"%{name_query}%"))
+    if email_query:
+        query = query.filter(Client.email.ilike(f"%{email_query}%"))
+    if phone_query:
+        query = query.filter(Client.phone.ilike(f"%{phone_query}%"))
+    if company_query:
+        query = query.filter(Client.company.ilike(f"%{company_query}%"))
+
+    # Run the query
+    clients = query.all()
+
+    # Convert to JSON
     result = [
         {
             'id': client.id,
@@ -59,7 +84,9 @@ def get_clients():
         }
         for client in clients
     ]
-    return jsonify(result)
+
+    return jsonify(result), 200
+
 
 # PATCH /clients/<id>
 @clients_bp.route('/clients/<int:client_id>', methods=['PATCH'])
@@ -85,14 +112,18 @@ def update_client(client_id):
 # DELETE /clients/<id>
 @clients_bp.route('/clients/<int:client_id>', methods=['DELETE'])
 @jwt_required()
-@role_required('admin')  # Only admins can delete
+@role_required('admin')
 def delete_client(client_id):
-    client = Client.query.get_or_404(client_id)
+
+    client = Client.query.get(client_id)
+    if not client:
+        return jsonify({'error': 'Client not found'}), 404
 
     db.session.delete(client)
     db.session.commit()
+    
+    return jsonify({'message': 'Client deleted successfully'}), 200
 
-    return jsonify({'message': 'Client deleted successfully'})
 
 @clients_bp.route('/clients/<int:client_id>', methods=['GET'])
 def get_client_by_id(client_id):

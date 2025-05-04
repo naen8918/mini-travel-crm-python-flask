@@ -8,6 +8,10 @@
 > A lightweight CRM system tailored for small travel agencies.  
 > Built with Python, Flask, and SQLAlchemy, it provides client, trip, invoice, and payment management — with JWT-based authentication and role-based access control for security.
 
+### 🧭 Mini Travel CRM – Flask REST API
+
+A lightweight, modular CRM system built for small travel agencies. This project features secure JWT-based authentication, role-based access control, and full CRUD operations for managing clients, trips, invoices, and payments. With a clean RESTful architecture and reporting endpoints, it’s designed for real-world usability and scalability. Ideal for showcasing backend development skills, API design, and database modeling. Postman-ready and future-proofed for frontend integration.
+
 ---
 
 ## ✨ Key Features

@@ -68,15 +68,19 @@ def update_payment(payment_id):
 
 # DELETE /payments/<payment_id>
 @payments_bp.route('/payments/<int:payment_id>', methods=['DELETE'])
-@jwt_required() 
+@jwt_required()
 @role_required('admin')
 def delete_payment(payment_id):
-    payment = Payment.query.get_or_404(payment_id)
+
+    payment = Payment.query.get(payment_id)
+    if not payment:
+        return jsonify({'error': 'Payment not found'}), 404
 
     db.session.delete(payment)
     db.session.commit()
 
-    return jsonify({'message': 'Payment deleted successfully'})
+    return jsonify({'message': 'Payment deleted successfully'}), 200
+
 
 @payments_bp.route('/payments/<int:payment_id>', methods=['GET'])
 def get_payment_by_id(payment_id):

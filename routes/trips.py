@@ -35,10 +35,27 @@ def create_trip():
 
     return jsonify({'message': 'Trip created successfully'})
 
-# GET /trips
+
+# GET /trips with optional filters
 @trips_bp.route('/trips', methods=['GET'])
+@jwt_required()
+@role_required('admin', 'agent', 'analyst')
 def get_trips():
-    trips = Trip.query.all()
+    destination = request.args.get('destination')
+    client_id = request.args.get('client_id', type=int)
+    start_date = request.args.get('start_date')  # Format: YYYY-MM-DD
+
+    query = Trip.query
+
+    if destination:
+        query = query.filter(Trip.destination.ilike(f"%{destination}%"))
+    if client_id:
+        query = query.filter(Trip.client_id == client_id)
+    if start_date:
+        query = query.filter(Trip.start_date >= start_date)
+
+    trips = query.all()
+
     result = [
         {
             'id': trip.id,
@@ -51,7 +68,9 @@ def get_trips():
         }
         for trip in trips
     ]
-    return jsonify(result)
+
+    return jsonify(result), 200
+
 
 # PATCH /trips/<trip_id>
 @trips_bp.route('/trips/<int:trip_id>', methods=['PATCH'])
@@ -82,9 +101,12 @@ def update_trip(trip_id):
 @jwt_required()
 @role_required('admin')
 def delete_trip(trip_id):
-    trip = Trip.query.get_or_404(trip_id)
+
+    trip = Trip.query.get(trip_id)
+    if not trip:
+        return jsonify({'error': 'Trip not found'}), 404
 
     db.session.delete(trip)
     db.session.commit()
-
-    return jsonify({'message': 'Trip deleted successfully'})
+    
+    return jsonify({'message': 'Trip deleted successfully'}), 200
