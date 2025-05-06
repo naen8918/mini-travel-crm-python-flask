@@ -126,6 +126,8 @@ def delete_client(client_id):
 
 
 @clients_bp.route('/clients/<int:client_id>', methods=['GET'])
+@jwt_required()
+@role_required('admin', 'agent')  # Controls who can view clients
 def get_client_by_id(client_id):
     client = Client.query.get_or_404(client_id)
     return jsonify({

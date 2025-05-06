@@ -5,35 +5,37 @@
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
 
-> A lightweight CRM system tailored for small travel agencies.  
-> Built with Python, Flask, and SQLAlchemy, it provides client, trip, invoice, and payment management — with JWT-based authentication and role-based access control for security.
+> A secure, modular CRM system tailored for small travel agencies.  
+> Built with Python, Flask, and SQLAlchemy, it enables efficient management of clients, trips, invoices, and payments — all protected with JWT authentication and role-based access control.
 
-### 🧭 Mini Travel CRM – Flask REST API
+---
+## 📌 Project Description
 
-A lightweight, modular CRM system built for small travel agencies. This project features secure JWT-based authentication, role-based access control, and full CRUD operations for managing clients, trips, invoices, and payments. With a clean RESTful architecture and reporting endpoints, it’s designed for real-world usability and scalability. Ideal for showcasing backend development skills, API design, and database modeling. Postman-ready and future-proofed for frontend integration.
+**Mini Travel CRM** is a lightweight REST API for managing customer interactions and bookings in a small travel agency. It includes full CRUD functionality, client notes, financial reports, and robust security for multi-role access. Ideal for backend portfolio projects, API design practice, and small business use cases.
 
 ---
 
 ## ✨ Key Features
 
-- 🔐 **JWT Authentication** (Register, Login, `/me` endpoint)
+- 🔐 **JWT Authentication** (`/register`, `/login`, `/me`)
 - 👥 **Role-Based Access Control** (`admin`, `agent`, `analyst`)
-- 📁 Full CRUD for **Clients, Trips, Invoices, Payments**
-- 💰 **Reports API**: Revenue, unpaid invoices, invoice summaries
-- 🧾 **Invoice Tracking**: Pending, Paid, Overdue
-- 🧱 Modular architecture using Flask Blueprints
-- 🧪 Ready for **Postman testing**
-- 🗂️ Uses **SQLite** and **Flask-SQLAlchemy** for DB operations
+- 📁 Full **CRUD Operations**: Clients, Trips, Invoices, Payments
+- 🧾 **Client Notes** system: Add/update/delete internal notes per client
+- 📊 **Reports API**: Monthly revenue, revenue by client, unpaid invoices
+- 🔍 **Search/Filter Support** for Clients and Trips
+- 🧱 Modular Flask app using Blueprints
+- 🧪 **Postman-Ready** for full testing coverage
+- 💾 Lightweight **SQLite** database + SQLAlchemy ORM
 
 ---
 
 ## 👥 Roles & Permissions
 
-| Role     | Description                             |
-|----------|-----------------------------------------|
-| `admin`  | Full access to all endpoints            |
-| `agent`  | Can create/update business data         |
-| `analyst`| Read-only access to financial reports   |
+| Role     | Permissions                          |
+|----------|--------------------------------------|
+| `admin`  | Full access, including user cleanup  |
+| `agent`  | Add/update business records          |
+| `analyst`| Read-only access to reports          |
 
 ---
 
@@ -76,13 +78,15 @@ mini-travel-crm-python-flask/
 ├── .env                    # Local secrets (not pushed)
 ├── requirements.txt
 │
-├── models/                 # SQLAlchemy ORM Models
+├── models/                   # SQLAlchemy ORM Models
+│   ├── client_note.py         # New: model for storing notes tied to clients                 
 │   ├── client.py
 │   ├── trip.py
 │   ├── invoice.py
 │   └── payment.py
 │
 ├── routes/                 # Business logic & API endpoints
+│   ├── client_notes.py        # Client interaction tracking
 │   ├── clients.py
 │   ├── trips.py
 │   ├── invoices.py
@@ -97,30 +101,35 @@ mini-travel-crm-python-flask/
 
 ```
 ---
+
 ## 📊 Reporting API
-| Endpoint                     | Description                              |
-| ---------------------------- | ---------------------------------------- |
-| `/reports/invoice-summary`   | Paid, Pending, and Overdue invoice count |
-| `/reports/monthly-revenue`   | Monthly revenue by year & destination    |
-| `/reports/revenue-by-client` | Total revenue generated per client       |
-| `/reports/unpaid-invoices`   | List of all unpaid invoices              |
+
+| Endpoint                     | Description                                |
+| ---------------------------- | ------------------------------------------ |
+| `/reports/invoice-summary`   | Paid, Pending, and Overdue invoice count   |
+| `/reports/monthly-revenue`   | Monthly revenue by year & destination/year |
+| `/reports/revenue-by-client` | Total revenue generated per client         |
+| `/reports/unpaid-invoices`   | List of all unpaid invoices                |
 
 
 ---
 
 ## 🔐 Protected Routes Summary
 
-| Endpoint         | Method | Roles          |
-| ---------------- | ------ | -------------- |
-| `/clients`       | POST   | admin, agent   |
-| `/clients/<id>`  | DELETE | admin          |
-| `/trips`         | POST   | admin, agent   |
-| `/trips/<id>`    | DELETE | admin          |
-| `/invoices`      | POST   | admin, agent   |
-| `/invoices/<id>` | DELETE | admin          |
-| `/payments`      | POST   | admin, agent   |
-| `/payments/<id>` | DELETE | admin          |
-| `/reports/*`     | GET    | admin, analyst |
+| Endpoint                   | Method | Roles          |
+| -------------------------- | ------ | -------------- |
+| `/clients`                 | POST   | admin, agent   |
+| `/clients/<id>`            | DELETE | admin          |
+| `/trips`                   | POST   | admin, agent   |
+| `/trips/<id>`              | DELETE | admin          |
+| `/invoices`                | POST   | admin, agent   |
+| `/invoices/<id>`           | DELETE | admin          |
+| `/payments`                | POST   | admin, agent   |
+| `/payments/<id>`           | DELETE | admin          |
+| `/clients/<id>/notes`      | POST   | admin, agent   |
+| `/clients/<id>/notes/<id>` | PATCH  | admin, agent   |
+| `/clients/<id>/notes/<id>` | DELETE | admin          |
+| `/reports/*`               | GET    | admin, analyst |
 
 ---
 
@@ -150,21 +159,27 @@ flask run
 
 ## 🧪 Postman Testing Instructions
     
-1. Login via `/login`, store token
+1. Login via `/login` and store your `access_token`
 2. Set Header:
 
     ```pgsql
     Authorization: Bearer <your_token>
     Content-Type: application/json
     ```
-3. Use all `/clients`, `/trips`, `/invoices`, `/payments`, and `/reports/`* endpoints.
+3. Use all `/clients`, `/trips`, `/invoices`, `/payments`, 
+`/reports/`, and `/clients/<id>/notes` * endpoints.
 ---
 
 ## 📈 Future Improvements
-- 📤 Export reports as CSV or PDF
-- 🖼️ Build a frontend (React/Vue)
-- 🌍 Localization support (multi-language)
-- 🛡️ Admin UI panel for user/role management
+
+| Feature                     | Description                          |
+| --------------------------- | ------------------------------------ s|
+| 📤 CSV/PDF Report Export    | Download reports easily             |
+| 🖼️ Frontend UI (React/Vue) | User-friendly dashboard interface    |
+| 🌍 Localization Support     | Multi-language CRM support          |
+| 🛡️ Admin UI Panel          | Manage users and permissions via GUI |
+
+
 ---
 ## 👤 Author
 ### Nazgul Engvall
