@@ -5,40 +5,43 @@ from app import db
 from models.client_note import ClientNote
 from models.client import Client
 
-
 notes_bp = Blueprint('client_notes', __name__)
 
-# Create a note
+# 🔹 Helper to get a client or return 404
+def get_client_or_404(client_id):
+    client = Client.query.get(client_id)
+    if not client:
+        return None, jsonify({'error': 'Client not found'}), 404
+    return client, None, None
+
+# 🔹 Create a note
 @notes_bp.route('/clients/<int:client_id>/notes', methods=['POST'])
 @jwt_required()
 @role_required('admin', 'agent')
 def add_note(client_id):
-    # Validate that the client exists
-    client = Client.query.get(client_id)
-    if not client:
-        return jsonify({'error': 'Client not found'}), 404
+    client, error_response, status = get_client_or_404(client_id)
+    if error_response:
+        return error_response, status
 
     data = request.get_json()
-    text = data.get('note')
-    if not text:
+    note_text = data.get('note')
+    if not note_text:
         return jsonify({'error': 'Note text is required'}), 400
 
-    new_note = ClientNote(client_id=client_id, note=text)
+    new_note = ClientNote(client_id=client.id, note=note_text)
     db.session.add(new_note)
     db.session.commit()
 
     return jsonify({'message': 'Note added successfully'}), 201
 
-
-# Update a note
+# 🔹 Update a note
 @notes_bp.route('/clients/<int:client_id>/notes/<int:note_id>', methods=['PATCH'])
 @jwt_required()
 @role_required('admin', 'agent')
 def update_note(client_id, note_id):
-    # Ensure client exists
-    client = Client.query.get(client_id)
-    if not client:
-        return jsonify({'error': 'Client not found'}), 404
+    client, error_response, status = get_client_or_404(client_id)
+    if error_response:
+        return error_response, status
 
     note = ClientNote.query.filter_by(id=note_id, client_id=client_id).first()
     if not note:
@@ -53,25 +56,38 @@ def update_note(client_id, note_id):
     db.session.commit()
     return jsonify({'message': 'Note updated successfully'}), 200
 
+# 🔹 Get all notes for a client
+@notes_bp.route('/clients/<int:client_id>/notes', methods=['GET'])
+@jwt_required()
+@role_required('admin', 'agent', 'analyst')
+def get_notes(client_id):
+    client, error_response, status = get_client_or_404(client_id)
+    if error_response:
+        return error_response, status
 
-# Delete a note
+    notes = ClientNote.query.filter_by(client_id=client_id).all()
+    return jsonify([
+        {
+            'id': note.id,
+            'note': note.note,
+            'timestamp': note.timestamp.isoformat()
+        }
+        for note in notes
+    ]), 200
+
+# 🔹 Delete a note
 @notes_bp.route('/clients/<int:client_id>/notes/<int:note_id>', methods=['DELETE'])
 @jwt_required()
 @role_required('admin')
 def delete_note(client_id, note_id):
-    
-    # Ensure client exists
-    client = Client.query.get(client_id)
-    if not client:
-        return jsonify({'error': 'Client not found'}), 404
-
+    client, error_response, status = get_client_or_404(client_id)
+    if error_response:
+        return error_response, status
 
     note = ClientNote.query.filter_by(id=note_id, client_id=client_id).first()
     if not note:
         return jsonify({'error': 'Note not found'}), 404
 
-
     db.session.delete(note)
     db.session.commit()
-    
     return jsonify({'message': 'Note deleted successfully'}), 200

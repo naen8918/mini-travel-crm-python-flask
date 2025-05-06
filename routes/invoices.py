@@ -2,44 +2,43 @@ from flask import Blueprint, request, jsonify
 from app import db
 from models.invoice import Invoice
 from models.trip import Trip
-from datetime import datetime  # Needed to parse dates
+from datetime import datetime
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from auth.permissions import role_required
 
 invoices_bp = Blueprint('invoices', __name__)
 
+# Create a new invoice
 @invoices_bp.route('/invoices', methods=['POST'])
 @jwt_required()
 @role_required('admin', 'agent')
 def create_invoice():
-    current_user = get_jwt_identity()
-    print(f"Invoice created by user: {current_user}")  # Logging user ID
-
+    print(f"Invoice created by user: {get_jwt_identity()}")
     data = request.get_json()
 
-    # Convert string dates to datetime.date objects
     issue_date = datetime.strptime(data['issue_date'], '%Y-%m-%d').date()
     due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
 
-    new_invoice = Invoice(
+    invoice = Invoice(
         trip_id=data['trip_id'],
         issue_date=issue_date,
         due_date=due_date,
         amount=data['amount'],
-        status=data.get('status', 'Pending')  # Default to 'Pending' if not provided
+        status=data.get('status', 'Pending')
     )
 
-    db.session.add(new_invoice)
+    db.session.add(invoice)
     db.session.commit()
 
-    return jsonify({'message': 'Invoice created successfully'})
+    return jsonify({'message': 'Invoice created successfully'}), 201
 
+# Get all invoices for a trip
 @invoices_bp.route('/invoices/<int:trip_id>', methods=['GET'])
 def get_invoices_for_trip(trip_id):
-    Trip.query.get_or_404(trip_id)  # Check if trip exists first
-
+    Trip.query.get_or_404(trip_id)
     invoices = Invoice.query.filter_by(trip_id=trip_id).all()
-    result = [
+    
+    return jsonify([
         {
             'id': inv.id,
             'issue_date': str(inv.issue_date),
@@ -48,12 +47,24 @@ def get_invoices_for_trip(trip_id):
             'status': inv.status
         }
         for inv in invoices
-    ]
-    return jsonify(result)
+    ]), 200
 
-# PATCH /invoices/<invoice_id>
+# Get invoice by ID
+@invoices_bp.route('/invoice/<int:invoice_id>', methods=['GET'])
+def get_invoice_by_id(invoice_id):
+    inv = Invoice.query.get_or_404(invoice_id)
+    return jsonify({
+        'id': inv.id,
+        'trip_id': inv.trip_id,
+        'issue_date': str(inv.issue_date),
+        'due_date': str(inv.due_date),
+        'amount': inv.amount,
+        'status': inv.status
+    }), 200
+
+# Update invoice
 @invoices_bp.route('/invoices/<int:invoice_id>', methods=['PATCH'])
-@jwt_required() 
+@jwt_required()
 @role_required('admin', 'agent')
 def update_invoice(invoice_id):
     invoice = Invoice.query.get_or_404(invoice_id)
@@ -69,34 +80,17 @@ def update_invoice(invoice_id):
         invoice.status = data['status']
 
     db.session.commit()
+    return jsonify({'message': 'Invoice updated successfully'}), 200
 
-    return jsonify({'message': 'Invoice updated successfully'})
-
-# DELETE /invoices/<invoice_id>
+# Delete invoice
 @invoices_bp.route('/invoices/<int:invoice_id>', methods=['DELETE'])
 @jwt_required()
 @role_required('admin')
 def delete_invoice(invoice_id):
-
     invoice = Invoice.query.get(invoice_id)
     if not invoice:
         return jsonify({'error': 'Invoice not found'}), 404
 
     db.session.delete(invoice)
     db.session.commit()
-    
     return jsonify({'message': 'Invoice deleted successfully'}), 200
-
-
-@invoices_bp.route('/invoices/<int:invoice_id>', methods=['GET'])
-def get_invoice_by_id(invoice_id):
-    invoice = Invoice.query.get_or_404(invoice_id)
-
-    return jsonify({
-        'id': invoice.id,
-        'trip_id': invoice.trip_id,
-        'issue_date': str(invoice.issue_date),
-        'due_date': str(invoice.due_date),
-        'amount': invoice.amount,
-        'status': invoice.status
-    })
