@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from auth.permissions import role_required
 from app import db
 from models.trip import Trip
+from models.client import Client
 from datetime import datetime
 
 trips_bp = Blueprint('trips', __name__)
@@ -19,22 +20,37 @@ def create_trip():
 
     data = request.get_json()
 
-    try:
-        new_trip = Trip(
-            destination=data['destination'],
-            start_date=datetime.strptime(data['start_date'], '%Y-%m-%d').date(),
-            end_date=datetime.strptime(data['end_date'], '%Y-%m-%d').date(),
-            price=data['price'],
-            notes=data.get('notes'),
-            client_id=data['client_id']
-        )
-    except (KeyError, ValueError) as e:
-        return jsonify({'error': f'Invalid input: {str(e)}'}), 400
+    required_fields = ['destination', 'start_date', 'end_date', 'price', 'client_id']
+    missing = [field for field in required_fields if field not in data]
+    if missing:
+        return jsonify({'error': f"Missing required fields: {', '.join(missing)}"}), 400
 
-    db.session.add(new_trip)
+    try:
+        start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+        end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
+        price = float(data['price'])
+        client_id = int(data['client_id'])
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid data format for date, price, or client_id'}), 400
+
+    # Check if client exists
+    if not Client.query.get(client_id):
+        return jsonify({'error': 'Client not found'}), 404
+
+    trip = Trip(
+        destination=data['destination'],
+        start_date=start_date,
+        end_date=end_date,
+        price=price,
+        notes=data.get('notes'),
+        client_id=client_id
+    )
+
+    db.session.add(trip)
     db.session.commit()
 
     return jsonify({'message': 'Trip created successfully'}), 201
+
 
 # ------------------------
 # LIST TRIPS WITH FILTERS
@@ -43,10 +59,9 @@ def create_trip():
 @jwt_required()
 @role_required('admin', 'agent', 'analyst')
 def get_trips():
-    # Optional filters
     destination = request.args.get('destination')
     client_id = request.args.get('client_id', type=int)
-    start_date = request.args.get('start_date')  # YYYY-MM-DD
+    start_date = request.args.get('start_date')  # Format: YYYY-MM-DD
 
     query = Trip.query
 
@@ -56,8 +71,8 @@ def get_trips():
         query = query.filter(Trip.client_id == client_id)
     if start_date:
         try:
-            start_date_parsed = datetime.strptime(start_date, '%Y-%m-%d').date()
-            query = query.filter(Trip.start_date >= start_date_parsed)
+            parsed = datetime.strptime(start_date, '%Y-%m-%d').date()
+            query = query.filter(Trip.start_date >= parsed)
         except ValueError:
             return jsonify({'error': 'Invalid start_date format (expected YYYY-MM-DD)'}), 400
 
@@ -65,16 +80,16 @@ def get_trips():
 
     return jsonify([
         {
-            'id': trip.id,
-            'destination': trip.destination,
-            'start_date': str(trip.start_date),
-            'end_date': str(trip.end_date),
-            'price': trip.price,
-            'notes': trip.notes,
-            'client_id': trip.client_id
-        }
-        for trip in trips
+            'id': t.id,
+            'destination': t.destination,
+            'start_date': str(t.start_date),
+            'end_date': str(t.end_date),
+            'price': t.price,
+            'notes': t.notes,
+            'client_id': t.client_id
+        } for t in trips
     ]), 200
+
 
 # ------------------------
 # UPDATE TRIP
@@ -85,6 +100,11 @@ def get_trips():
 def update_trip(trip_id):
     trip = Trip.query.get_or_404(trip_id)
     data = request.get_json()
+
+    allowed_fields = {'destination', 'start_date', 'end_date', 'price', 'notes', 'client_id'}
+    unknown = [key for key in data if key not in allowed_fields]
+    if unknown:
+        return jsonify({'error': f"Invalid field(s): {', '.join(unknown)}"}), 400
 
     if 'destination' in data:
         trip.destination = data['destination']
@@ -99,15 +119,24 @@ def update_trip(trip_id):
         except ValueError:
             return jsonify({'error': 'Invalid end_date format'}), 400
     if 'price' in data:
-        trip.price = data['price']
+        try:
+            trip.price = float(data['price'])
+        except ValueError:
+            return jsonify({'error': 'Price must be a number'}), 400
     if 'notes' in data:
         trip.notes = data['notes']
     if 'client_id' in data:
-        trip.client_id = data['client_id']
+        try:
+            client_id = int(data['client_id'])
+        except ValueError:
+            return jsonify({'error': 'client_id must be an integer'}), 400
+        if not Client.query.get(client_id):
+            return jsonify({'error': 'Client not found'}), 404
+        trip.client_id = client_id
 
     db.session.commit()
-
     return jsonify({'message': 'Trip updated successfully'}), 200
+
 
 # ------------------------
 # DELETE TRIP

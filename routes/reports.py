@@ -52,14 +52,16 @@ def monthly_revenue():
     destination = request.args.get('destination', type=str)
 
     query = db.session.query(
-        extract('year', Payment.payment_date).label('year'),
-        extract('month', Payment.payment_date).label('month'),
+        func.strftime('%Y', Payment.payment_date).label('year'),
+        func.strftime('%m', Payment.payment_date).label('month'),
         Trip.destination,
         func.sum(Payment.amount).label('total')
-    ).join(Invoice).join(Trip)
+    ).select_from(Payment)\
+     .join(Invoice, Payment.invoice_id == Invoice.id)\
+     .join(Trip, Invoice.trip_id == Trip.id)
 
     if year:
-        query = query.filter(extract('year', Payment.payment_date) == year)
+        query = query.filter(func.strftime('%Y', Payment.payment_date) == str(year))
     if destination:
         query = query.filter(Trip.destination.ilike(f'%{destination}%'))
 
@@ -67,12 +69,13 @@ def monthly_revenue():
 
     return jsonify([
         {
-            'year': int(r.year),
-            'month': int(r.month),
+            'year': r.year,
+            'month': r.month,
             'destination': r.destination,
             'total_revenue': round(r.total, 2)
         } for r in results
     ])
+
 
 
 @reports_bp.route('/reports/revenue-by-client', methods=['GET'])
@@ -136,22 +139,26 @@ def export_monthly_revenue():
     destination = request.args.get('destination', type=str)
 
     query = db.session.query(
-        extract('year', Payment.payment_date).label('year'),
-        extract('month', Payment.payment_date).label('month'),
+        func.strftime('%Y', Payment.payment_date).label('year'),
+        func.strftime('%m', Payment.payment_date).label('month'),
         Trip.destination,
         func.sum(Payment.amount).label('total')
-    ).join(Invoice).join(Trip)
+    ).select_from(Payment)\
+     .join(Invoice, Payment.invoice_id == Invoice.id)\
+     .join(Trip, Invoice.trip_id == Trip.id)
 
     if year:
-        query = query.filter(extract('year', Payment.payment_date) == year)
+        query = query.filter(func.strftime('%Y', Payment.payment_date) == str(year))
     if destination:
         query = query.filter(Trip.destination.ilike(f'%{destination}%'))
 
     results = query.group_by('year', 'month', Trip.destination).order_by('year', 'month').all()
-    rows = [[int(r.year), int(r.month), r.destination, round(r.total, 2)] for r in results]
+
+    rows = [[r.year, r.month, r.destination, round(r.total, 2)] for r in results]
 
     return export_csv('monthly_revenue.csv',
         ['Year', 'Month', 'Destination', 'Total Revenue'], rows)
+
 
 
 @reports_bp.route('/reports/revenue-by-client/export', methods=['GET'])

@@ -28,16 +28,21 @@ def serialize_client(client):
 @role_required('admin', 'agent')
 def create_client():
     data = request.get_json()
-    name, email, phone = data.get('name'), data.get('email'), data.get('phone')
-    company = data.get('company')
+    required_fields = ['name', 'email', 'phone']
+    missing = [f for f in required_fields if f not in data or not data[f]]
 
-    if not name or not email or not phone:
-        return jsonify({'error': 'Missing required client data'}), 400
+    if missing:
+        return jsonify({'error': f"Missing required field(s): {', '.join(missing)}"}), 400
 
-    if Client.query.filter_by(email=email).first():
+    if Client.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'A client with this email already exists'}), 409
 
-    new_client = Client(name=name, email=email, phone=phone, company=company)
+    new_client = Client(
+        name=data['name'],
+        email=data['email'],
+        phone=data['phone'],
+        company=data.get('company')
+    )
     db.session.add(new_client)
     db.session.commit()
 
@@ -75,7 +80,17 @@ def update_client(client_id):
     client = Client.query.get_or_404(client_id)
     data = request.get_json()
 
-    for field in ['name', 'email', 'phone', 'company']:
+    allowed_fields = {'name', 'email', 'phone', 'company'}
+    unknown = [key for key in data if key not in allowed_fields]
+    if unknown:
+        return jsonify({'error': f"Invalid field(s): {', '.join(unknown)}"}), 400
+
+    if 'email' in data:
+        existing = Client.query.filter(Client.email == data['email'], Client.id != client_id).first()
+        if existing:
+            return jsonify({'error': 'Email already in use by another client'}), 409
+
+    for field in allowed_fields:
         if field in data:
             setattr(client, field, data[field])
 
@@ -164,7 +179,7 @@ def get_client_details(client_id):
     }), 200
 
 # ----------------------------
-# 📤 Export /clients/<id>/details/export
+# 📤 /clients/<id>/details/export
 # ----------------------------
 @clients_bp.route('/clients/<int:client_id>/details/export', methods=['GET'])
 @jwt_required()
@@ -208,7 +223,7 @@ def export_client_details(client_id):
     )
 
 # ----------------------------
-# 📤 Export all clients (/clients/export)
+# 📤 /clients/export
 # ----------------------------
 @clients_bp.route('/clients/export', methods=['GET'])
 @jwt_required()

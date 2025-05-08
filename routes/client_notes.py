@@ -7,14 +7,16 @@ from models.client import Client
 
 notes_bp = Blueprint('client_notes', __name__)
 
-# 🔹 Helper to get a client or return 404
+# 🔹 Helper to retrieve a client or return 404
 def get_client_or_404(client_id):
     client = Client.query.get(client_id)
     if not client:
         return None, jsonify({'error': 'Client not found'}), 404
     return client, None, None
 
-# 🔹 Create a note
+# ------------------------------
+# 📌 POST /clients/<id>/notes
+# ------------------------------
 @notes_bp.route('/clients/<int:client_id>/notes', methods=['POST'])
 @jwt_required()
 @role_required('admin', 'agent')
@@ -25,16 +27,17 @@ def add_note(client_id):
 
     data = request.get_json()
     note_text = data.get('note')
-    if not note_text:
-        return jsonify({'error': 'Note text is required'}), 400
+    if not note_text or not isinstance(note_text, str):
+        return jsonify({'error': 'Valid note text is required'}), 400
 
-    new_note = ClientNote(client_id=client.id, note=note_text)
+    new_note = ClientNote(client_id=client.id, note=note_text.strip())
     db.session.add(new_note)
     db.session.commit()
-
     return jsonify({'message': 'Note added successfully'}), 201
 
-# 🔹 Update a note
+# ------------------------------
+# 📝 PATCH /clients/<id>/notes/<id>
+# ------------------------------
 @notes_bp.route('/clients/<int:client_id>/notes/<int:note_id>', methods=['PATCH'])
 @jwt_required()
 @role_required('admin', 'agent')
@@ -49,14 +52,16 @@ def update_note(client_id, note_id):
 
     data = request.get_json()
     new_text = data.get('note')
-    if not new_text:
-        return jsonify({'error': 'Updated note text is required'}), 400
+    if not new_text or not isinstance(new_text, str):
+        return jsonify({'error': 'Valid updated note text is required'}), 400
 
-    note.note = new_text
+    note.note = new_text.strip()
     db.session.commit()
     return jsonify({'message': 'Note updated successfully'}), 200
 
-# 🔹 Get all notes for a client
+# ------------------------------
+# 📋 GET /clients/<id>/notes
+# ------------------------------
 @notes_bp.route('/clients/<int:client_id>/notes', methods=['GET'])
 @jwt_required()
 @role_required('admin', 'agent', 'analyst')
@@ -75,7 +80,9 @@ def get_notes(client_id):
         for note in notes
     ]), 200
 
-# 🔹 Delete a note
+# ------------------------------
+# ❌ DELETE /clients/<id>/notes/<id>
+# ------------------------------
 @notes_bp.route('/clients/<int:client_id>/notes/<int:note_id>', methods=['DELETE'])
 @jwt_required()
 @role_required('admin')
