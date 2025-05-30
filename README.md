@@ -11,7 +11,12 @@
 ---
 ## 📌 Project Description
 
-**Mini Travel CRM** is a lightweight REST API for managing customer interactions and bookings in a small travel agency. It includes full CRUD functionality, client notes, financial reports, and robust security for multi-role access. Ideal for backend portfolio projects, API design practice, and small business use cases.
+**Mini Travel CRM** is a lightweight REST API for managing customer interactions and bookings in a small travel agency. It includes: 
+- ✅ Full CRUD functionality
+- 🔐 Secure user authentication & role management
+- 🧾 Internal note-taking per client
+- 📊 Financial and client reporting
+- 🧠 Frontend-ready endpoints for dropdowns & user data
 
 ---
 
@@ -19,23 +24,25 @@
 
 - 🔐 **JWT Authentication** (`/register`, `/login`, `/me`)
 - 👥 **Role-Based Access Control** (`admin`, `agent`, `analyst`)
+- 🔑 **User Management** (list all users via `/users`, restrict to admin)
 - 📁 Full **CRUD Operations**: Clients, Trips, Invoices, Payments
-- 🧾 **Client Notes** system: Add/update/delete internal notes per client
+- 🧾 **Client Notes** system: Add/update/delete internal notes
 - 📊 **Reports API**: Monthly revenue, revenue by client, unpaid invoices
-- 🔍 **Search/Filter Support** for Clients and Trips
+- 🌐 **Public Role List API** (`/roles`) for frontend dropdowns
+- 🔍 **Search/Filter**: Filter clients and trips by name/date/etc.
 - 🧱 Modular Flask app using Blueprints
-- 🧪 **Postman-Ready** for full testing coverage
+- 🧪 **Postman-Ready** with protected route testing
 - 💾 Lightweight **SQLite** database + SQLAlchemy ORM
 
 ---
 
 ## 👥 Roles & Permissions
 
-| Role     | Permissions                          |
+| Role     | Description                          |
 |----------|--------------------------------------|
-| `admin`  | Full access, including user cleanup  |
+| `admin`  | Full access + user management        |
 | `agent`  | Add/update business records          |
-| `analyst`| Read-only access to reports          |
+| `analyst`| Read-only access to reporting APIs   |
 
 ---
 
@@ -62,24 +69,33 @@
 ```
 
 ## 🔍 Get Current User
-`GET /me` with header:
+`GET /me` (requires JWT header):
 
 ```http
 Authorization: Bearer <access_token>
 ```
+
+🧑‍💼 Get All Users (Admin Only)
+`GET /users`
+Returns list of all registered users with their ID, username, and role.
+
+🧩 Get Available Roles
+`GET /roles`
+Returns a list of available roles: ["admin", "agent", "analyst"]. Ideal for frontend dropdown menus.
+
 
 ## 🗂️ Folder Structure
 
 ```bash
 mini-travel-crm-python-flask/
 │
-├── app.py                  # Main entry point
-├── config.py               # App config + DB + JWT secrets
-├── .env                    # Local secrets (not pushed)
+├── app.py                  # Main App entry point
+├── config.py               # DB, JWT secrets, roles config
+├── .env                    # Local secrets (not committed)
 ├── requirements.txt
 │
 ├── models/                   # SQLAlchemy ORM Models
-│   ├── client_note.py         # New: model for storing notes tied to clients                 
+│   ├── client_note.py         # model for storing notes tied to clients                 
 │   ├── client.py
 │   ├── trip.py
 │   ├── invoice.py
@@ -104,12 +120,16 @@ mini-travel-crm-python-flask/
 
 ## 📊 Reporting API
 
-| Endpoint                     | Description                                |
-| ---------------------------- | ------------------------------------------ |
-| `/reports/invoice-summary`   | Paid, Pending, and Overdue invoice count   |
-| `/reports/monthly-revenue`   | Monthly revenue by year & destination/year |
-| `/reports/revenue-by-client` | Total revenue generated per client         |
-| `/reports/unpaid-invoices`   | List of all unpaid invoices                |
+| Endpoint                            | Description                                    |
+| ----------------------------------- | ---------------------------------------------- |
+| `/reports/invoice-summary`          | JSON summary: Paid, Pending, Overdue invoices  |
+| `/reports/monthly-revenue`          | JSON revenue grouped by month/year/destination |
+| `/reports/revenue-by-client`        | JSON revenue totals per client                 |
+| `/reports/unpaid-invoices`          | JSON list of all unpaid invoices               |
+| `/reports/invoice-summary/export`   | **CSV export** of invoice summary              |
+| `/reports/monthly-revenue/export`   | **CSV export** of monthly revenue              |
+| `/reports/revenue-by-client/export` | **CSV export** of revenue per client           |
+| `/reports/unpaid-invoices/export`   | **CSV export** of unpaid invoices              |
 
 
 ---
@@ -130,6 +150,7 @@ mini-travel-crm-python-flask/
 | `/clients/<id>/notes/<id>` | PATCH  | admin, agent   |
 | `/clients/<id>/notes/<id>` | DELETE | admin          |
 | `/reports/*`               | GET    | admin, analyst |
+| `/users`                   | GET    | admin only     |
 
 ---
 
@@ -159,25 +180,25 @@ flask run
 
 ## 🧪 Postman Testing Instructions
     
-1. Login via `/login` and store your `access_token`
-2. Set Header:
+1. Register och login to get your `access_token`
+2. Set Headers in Postman:
 
     ```pgsql
     Authorization: Bearer <your_token>
     Content-Type: application/json
     ```
-3. Use all `/clients`, `/trips`, `/invoices`, `/payments`, 
-`/reports/`, and `/clients/<id>/notes` * endpoints.
+3. Use all endpoints: `/clients`, `/trips`, `/invoices`, `/payments`, `/reports/`, `/clients/<id>/notes`, `/me`, `/users`, `/roles`, etc.
 ---
 
-## 📈 Future Improvements
+
+## 🌟 Future Improvements
 
 | Feature                     | Description                          |
-| --------------------------- | ------------------------------------ s|
-| 📤 CSV/PDF Report Export    | Download reports easily             |
-| 🖼️ Frontend UI (React/Vue) | User-friendly dashboard interface    |
-| 🌍 Localization Support     | Multi-language CRM support          |
-| 🛡️ Admin UI Panel          | Manage users and permissions via GUI |
+|-----------------------------|--------------------------------------|
+| 📤 PDF Export Support       | Extend reporting options beyond CSV  |
+| 🖼️ Frontend UI              | React/Vue dashboard with Auth        |
+| 🌍 Multi-language Support   | Localization-ready content           |
+| 🛡️ Admin Panel             | Full user management via GUI         |
 
 
 ---
@@ -189,4 +210,10 @@ GitHub: [naen8918](https://github.com/naen8918)
 
 ## 📝 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. Feel free to use and adapt it for your own portfolio or business needs.
+
+## 🧠 Ideal For
+
+- Backend portfolio projects
+- Flask/REST API architecture practice
+- Small travel businesses needing a CRM tool
